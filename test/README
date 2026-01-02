@@ -9,3 +9,38 @@ in the development cycle.
 
 More information about PlatformIO Unit Testing:
 - https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+
+===============================================================================
+ESP32 (非 S3) 移植修改記錄 (2026-01-02)
+===============================================================================
+
+1. platformio.ini 修改：
+   - 平台：改用標準 espressif32 平台（原為自訂 pioarduino 平台）
+   - 板子：esp32dev（原為 esp32-s3-devkitc-1）
+   - 框架：移除 platform_packages 版本限制，使用預設版本
+   - 依賴：移除 GrblParser 的無效 commit hash #9108f54
+   - 調試：cyd_buttons 環境添加 -DDEBUG_TO_USB 以啟用串口輸出
+
+2. src/Hardware2432.cpp 修改：
+   - SPI 主機：cfg.spi_host = HSPI_HOST（原為 SPI2_HOST）
+   - 原因：ESP32 使用 HSPI_HOST，ESP32-S3 使用 SPI2_HOST
+
+3. src/SystemArduino.cpp 修改：
+   - UART 配置：使用結構體初始化語法
+   - 時鐘源：明確設定 source_clk = UART_SCLK_APB（ESP32 標準時鐘源）
+   - 原因：修正 "uart_param_config: not able to power down in light sleep" 錯誤
+
+4. 文件系統上傳：
+   - 命令：platformio run --target uploadfs --environment cyd_buttons
+   - 用途：上傳圖標文件（data 資料夾）到 LittleFS 文件系統
+   - 必要性：UI 圖標顯示需要這些 PNG 文件
+
+測試結果：
+✓ 編譯成功
+✓ 上傳成功
+✓ ST7789 面板識別正確
+✓ UI 顯示正常
+✓ 圖標顯示正常
+
+硬體：ESP32 + 2.8吋 IPS 屏（電容式觸控）
+環境：cyd_buttons

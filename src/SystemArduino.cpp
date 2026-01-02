@@ -89,21 +89,15 @@ void init_fnc_uart(int uart_num, int tx_pin, int rx_pin) {
     int baudrate  = FNC_BAUD;
     uart_driver_delete(fnc_uart_port);
     uart_set_pin(fnc_uart_port, (gpio_num_t)tx_pin, (gpio_num_t)rx_pin, -1, -1);
-    uart_config_t conf;
-#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2)
-    conf.source_clk = UART_SCLK_APB;  // ESP32, ESP32S2
-#endif
-#if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(CONFIG_IDF_TARGET_ESP32C3)
-    // UART_SCLK_XTAL is independent of the APB frequency
-    conf.source_clk = UART_SCLK_XTAL;  // ESP32C3, ESP32S3
-#endif
-    conf.baud_rate = baudrate;
-
-    conf.data_bits           = UART_DATA_8_BITS;
-    conf.parity              = UART_PARITY_DISABLE;
-    conf.stop_bits           = UART_STOP_BITS_1;
-    conf.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
-    conf.rx_flow_ctrl_thresh = 0;
+    uart_config_t conf = {
+        .baud_rate = baudrate,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 0,
+        .source_clk = UART_SCLK_APB,
+    };
     if (uart_param_config(fnc_uart_port, &conf) != ESP_OK) {
         dbg_println("UART config failed");
         while (1) {}
